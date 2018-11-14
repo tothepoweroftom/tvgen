@@ -1,27 +1,262 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Hello!</title>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <!-- import the webpage's stylesheet -->
-    <link rel="stylesheet" href="/style.css">
-    
-    <!-- import the webpage's javascript file -->
-    <script src="/script.js" defer></script>
-  </head>  
-  <body>
-    <h1>Hi there!</h1>
-    
-    <p>
-      I'm your cool new webpage. Made with <a href="https://glitch.com">Glitch</a>!
-    </p>
+<html lang='en'>
 
-    <!-- include the Glitch button to show what the webpage is about and
-          to make it easier for folks to view source and remix -->
-    <div class="glitchButton" style="position:fixed;top:20px;right:20px;"></div>
-    <script src="https://button.glitch.me/button.js"></script>
-  </body>
+<head>
+	<title>Bad TV Shader for Three.js</title>
+	<meta charset='utf-8'>
+	<style>
+		body {
+			background-color: #000;
+			margin: 0px;
+			overflow: hidden;
+		}
+
+		#info {
+			color: #fff;
+			position: absolute;
+			bottom: 20px;
+			padding: 5px 20px;
+			font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+			font-weight: 100;
+			font-size: 18px;
+			background-color: #000;
+		}
+
+		a {
+			color: #DDD;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id='container'>
+
+		<p style="color:white;" id="p"> This is some text</p>
+	</div>
+	<script src="js/gyronorm.complete.min.js"></script>
+
+	<script src='lib/three.min.js'></script>
+	<script src='lib/dat.gui.min.js'></script>
+	<script src='lib/stats.min.js'></script>
+	<script src='lib/postprocessing/EffectComposer.js'></script>
+	<script src='lib/postprocessing/RenderPass.js'></script>
+	<script src='lib/postprocessing/ShaderPass.js'></script>
+	<script src='lib/postprocessing/MaskPass.js'></script>
+	<script src='lib/shaders/CopyShader.js'></script>
+	<script src='lib/shaders/FilmShader.js'></script>
+	<script src='lib/shaders/RGBShiftShader.js'></script>
+	<script src='js/BadTVShader.js'></script>
+	<script src='js/StaticShader.js'></script>
+
+	<script>
+		var gn = new GyroNorm();
+
+		gn.init().then(function () {
+			gn.start(function (data) {
+				// Process:
+				// data.do.alpha	( deviceorientation event alpha value )
+				// data.do.beta		( deviceorientation event beta value )
+				// data.do.gamma	( deviceorientation event gamma value )
+				// data.do.absolute	( deviceorientation event absolute value )
+
+				// data.dm.x		( devicemotion event acceleration x value )
+				// data.dm.y		( devicemotion event acceleration y value )
+				// data.dm.z		( devicemotion event acceleration z value )
+
+				// data.dm.gx		( devicemotion event accelerationIncludingGravity x value )
+				// data.dm.gy		( devicemotion event accelerationIncludingGravity y value )
+				// data.dm.gz		( devicemotion event accelerationIncludingGravity z value )
+
+				// data.dm.alpha	( devicemotion event rotationRate alpha value )
+				// data.dm.beta		( devicemotion event rotationRate beta value )
+				// data.dm.gamma	( devicemotion event rotationRate gamma value )
+				console.log(data);
+
+			});
+		}).catch(function (e) {
+			// Catch if the DeviceOrientation or DeviceMotion is not supported by the browser or device
+		});
+
+		//Bad TV Shader Demo
+		//Using Three.js r.75
+		//by Felix Turner / www.airtight.cc / @felixturner
+
+		var camera, scene, renderer;
+		var video, videoTexture, videoMaterial;
+		var composer;
+		var shaderTime = 0;
+		var badTVParams, badTVPass;
+		var staticParams, staticPass;
+		var rgbParams, rgbPass;
+		var filmParams, filmPass;
+		var renderPass, copyPass;
+		var gui;
+		var pnoise, globalParams;
+
+		init();
+		animate();
+
+
+
+		function init() {
+
+			camera = new THREE.PerspectiveCamera(55, 1080 / 720, 20, 3000);
+			camera.position.z = 1000;
+			scene = new THREE.Scene();
+
+			//Load Video
+			video = document.createElement('video');
+			video.loop = true;
+			video.src = 'res/clue.mp4';
+			video.play();
+
+
+			//init video texture
+			videoTexture = new THREE.Texture(video);
+			videoTexture.minFilter = THREE.LinearFilter;
+			videoTexture.magFilter = THREE.LinearFilter;
+
+			videoMaterial = new THREE.MeshBasicMaterial({
+				map: videoTexture
+			});
+
+			//Add video plane
+			var planeGeometry = new THREE.PlaneGeometry(1080, 720, 1, 1);
+			var plane = new THREE.Mesh(planeGeometry, videoMaterial);
+			scene.add(plane);
+			plane.z = 0;
+			plane.scale.x = plane.scale.y = 1;
+
+
+			//init renderer
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize(800, 600);
+			document.body.appendChild(renderer.domElement);
+
+			//POST PROCESSING
+			//Create Shader Passes
+			renderPass = new THREE.RenderPass(scene, camera);
+			badTVPass = new THREE.ShaderPass(THREE.BadTVShader);
+			rgbPass = new THREE.ShaderPass(THREE.RGBShiftShader);
+			filmPass = new THREE.ShaderPass(THREE.FilmShader);
+			staticPass = new THREE.ShaderPass(THREE.StaticShader);
+			copyPass = new THREE.ShaderPass(THREE.CopyShader);
+
+			//set shader uniforms
+			filmPass.uniforms.grayscale.value = 0;
+
+			//Init DAT GUI control panel
+			badTVParams = {
+				mute: true,
+				show: true,
+				distortion: 10.0,
+				distortion2: 10.0,
+				speed: 1.9,
+				rollSpeed: 0.5
+			};
+
+			staticParams = {
+				show: true,
+				amount: 0.5,
+				size: 4.0
+			};
+
+			rgbParams = {
+				show: true,
+				amount: 0.05,
+				angle: 90.0,
+			};
+
+			filmParams = {
+				show: true,
+				count: 800,
+				sIntensity: 0.9,
+				nIntensity: 0.4
+			};
+
+
+			onToggleShaders();
+			onToggleMute();
+			onParamsChange();
+
+			window.addEventListener('resize', onResize, false);
+			onResize();
+			// randomizeParams();
+		}
+
+		function onParamsChange() {
+
+			//copy gui params into shader uniforms
+			badTVPass.uniforms['distortion'].value = badTVParams.distortion;
+			badTVPass.uniforms['distortion2'].value = badTVParams.distortion2;
+			badTVPass.uniforms['speed'].value = badTVParams.speed;
+			badTVPass.uniforms['rollSpeed'].value = badTVParams.rollSpeed;
+
+			staticPass.uniforms['amount'].value = staticParams.amount;
+			staticPass.uniforms['size'].value = staticParams.size;
+
+			rgbPass.uniforms['angle'].value = rgbParams.angle * Math.PI;
+			rgbPass.uniforms['amount'].value = rgbParams.amount;
+
+			filmPass.uniforms['sCount'].value = filmParams.count;
+			filmPass.uniforms['sIntensity'].value = filmParams.sIntensity;
+			filmPass.uniforms['nIntensity'].value = filmParams.nIntensity;
+		}
+
+
+		function onToggleMute() {
+			video.volume = badTVParams.mute ? 0 : 1;
+		}
+
+		function onToggleShaders() {
+
+			//Add Shader Passes to Composer
+			//order is important 
+			composer = new THREE.EffectComposer(renderer);
+			composer.addPass(renderPass);
+
+			if (filmParams.show) {
+				composer.addPass(filmPass);
+			}
+
+			if (badTVParams.show) {
+				composer.addPass(badTVPass);
+			}
+
+			if (rgbParams.show) {
+				composer.addPass(rgbPass);
+			}
+
+			if (staticParams.show) {
+				composer.addPass(staticPass);
+			}
+
+			composer.addPass(copyPass);
+			copyPass.renderToScreen = true;
+		}
+
+		function animate() {
+
+			shaderTime += 0.1;
+			badTVPass.uniforms['time'].value = shaderTime;
+			filmPass.uniforms['time'].value = shaderTime;
+			staticPass.uniforms['time'].value = shaderTime;
+
+			if (video.readyState === video.HAVE_ENOUGH_DATA) {
+				if (videoTexture) videoTexture.needsUpdate = true;
+			}
+
+			requestAnimationFrame(animate);
+			composer.render(0.1);
+		}
+
+		function onResize() {
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+		}
+	</script>
+</body>
+
 </html>
