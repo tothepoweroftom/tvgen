@@ -71,7 +71,10 @@
 				// data.dm.alpha	( devicemotion event rotationRate alpha value )
 				// data.dm.beta		( devicemotion event rotationRate beta value )
 				// data.dm.gamma	( devicemotion event rotationRate gamma value )
-				console.log(data);
+        badTVPass.uniforms['distortion'].value = Math.abs(data.dm.alpha)*100;
+                badTVPass.uniforms['distortion2'].value = Math.abs(data.dm.gamma)*100;
+
+        rgbPass.uniforms['angle'].value = data.dm.beta*100;
 
 			});
 		}).catch(function (e) {
@@ -107,7 +110,7 @@
 
 			//Load Video
 			video = document.createElement('img');
-			video.src = 'res/standby.jpg';
+			video.src = 'res/clue.jpg';
 
 
 			//init video texture
@@ -148,10 +151,10 @@
 			badTVParams = {
 				mute: true,
 				show: true,
-				distortion: 10.0,
-				distortion2: 10.0,
-				speed: 1.9,
-				rollSpeed: 0.5
+				distortion: 100.0,
+				distortion2: 100.0,
+				speed: 10.0,
+				rollSpeed: 10.0
 			};
 
 			staticParams = {
