@@ -2,7 +2,7 @@
 <html lang='en'>
 
 <head>
-	<title>TVGen</title>
+	<title>Bad TV Shader for Three.js</title>
 	<meta charset='utf-8'>
 	<style>
 		body {
@@ -32,6 +32,7 @@
 
 	<div id='container'>
 
+		<p style="color:white;" id="p"> This is some text</p>
 	</div>
 	<script src="js/gyronorm.complete.min.js"></script>
 
@@ -70,10 +71,7 @@
 				// data.dm.alpha	( devicemotion event rotationRate alpha value )
 				// data.dm.beta		( devicemotion event rotationRate beta value )
 				// data.dm.gamma	( devicemotion event rotationRate gamma value )
-        badTVPass.uniforms['distortion'].value = Math.abs(data.dm.alpha)*100;
-                badTVPass.uniforms['distortion2'].value = Math.abs(data.dm.gamma)*100;
-
-        rgbPass.uniforms['angle'].value = data.dm.beta*100;
+				console.log(data);
 
 			});
 		}).catch(function (e) {
@@ -108,8 +106,10 @@
 			scene = new THREE.Scene();
 
 			//Load Video
-			video = document.createElement('img');
-			video.src = 'https://cdn.glitch.com/b83c9790-1c1e-451c-a16c-c83199e29184%2Fstandby.jpg?1543853129809';
+			video = document.createElement('video');
+			video.loop = true;
+			video.src = 'res/clue.mp4';
+			video.play();
 
 
 			//init video texture
@@ -150,10 +150,10 @@
 			badTVParams = {
 				mute: true,
 				show: true,
-				distortion: 100.0,
-				distortion2: 100.0,
-				speed: 10.0,
-				rollSpeed: 10.0
+				distortion: 10.0,
+				distortion2: 10.0,
+				speed: 1.9,
+				rollSpeed: 0.5
 			};
 
 			staticParams = {
