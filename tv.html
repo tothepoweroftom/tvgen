@@ -70,8 +70,8 @@
 				// data.dm.alpha	( devicemotion event rotationRate alpha value )
 				// data.dm.beta		( devicemotion event rotationRate beta value )
 				// data.dm.gamma	( devicemotion event rotationRate gamma value )
-        badTVPass.uniforms['distortion'].value = Math.abs(data.dm.alpha)*100;
-                badTVPass.uniforms['distortion2'].value = Math.abs(data.dm.gamma)*100;
+        badTVPass.uniforms['distortion'].value = Math.abs(data.dm.alpha)*60;
+                badTVPass.uniforms['distortion2'].value = Math.abs(data.dm.gamma)*60;
 
         rgbPass.uniforms['angle'].value = data.dm.beta*100;
 
