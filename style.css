@@ -1,0 +1,33 @@
+@font-face {
+    font-family: Lab;
+    src: url(https://cdn.glitch.com/5e565e7a-3ea2-4171-a7b5-527bb7df2aa0%2FLab%20Thin.ttf?1543852156619);
+}
+
+
+body {
+ color:white;
+  background: black;
+  
+  font-family: 'Lab';
+}
+
+#title {
+ margin: 0 auto;
+  width: 100vw;
+    text-align: center;
+
+  height:40px;
+  font-size:50px;
+}
+
+
+
+#start {
+  text-decoration: none;
+  font-size: 30px;
+  color:white;
+  border:1px solid white;
+  padding:10px;
+  background:black;
+/*   position:absolute; */
+}
