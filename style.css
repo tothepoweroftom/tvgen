@@ -1,23 +1,26 @@
-@font-face {
-    font-family: Lab;
-    src: url(https://cdn.glitch.com/5e565e7a-3ea2-4171-a7b5-527bb7df2aa0%2FLab%20Thin.ttf?1543852156619);
-}
 
 
 body {
  color:white;
   background: black;
   
-  font-family: 'Lab';
+  font-family: 'Russo One';
+  background-image: url(https://cdn.glitch.com/5e565e7a-3ea2-4171-a7b5-527bb7df2aa0%2Fezgif-2-f83ff665e731.gif?1543917795044);
+  background-size: cover;
+
 }
 
 #title {
- margin: 0 auto;
+ margin: -40px auto;
   width: 100vw;
-    text-align: center;
-
+ overflow-wrap: break-word;
   height:40px;
-  font-size:50px;
+  font-size:68px;
+}
+
+#butt {
+      text-align: center;
+
 }
 
 
@@ -25,8 +28,9 @@ body {
 #start {
   text-decoration: none;
   font-size: 30px;
+      text-align: center;
+
   color:white;
-  border:1px solid white;
   padding:10px;
   background:black;
 /*   position:absolute; */
